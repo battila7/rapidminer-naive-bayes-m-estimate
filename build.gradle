@@ -1,0 +1,34 @@
+buildscript {
+	repositories {
+	    jcenter()
+		maven { url 'https://maven.rapidminer.com/content/groups/public/' }
+	}
+}
+
+plugins { id 'com.rapidminer.extension' version '0.9.3' }
+
+repositories {
+    jcenter()
+	maven { url 'https://maven.rapidminer.com/content/groups/public/' }
+}
+
+extensionConfig {
+    name 'Naive Bayes m-estimate'
+
+    groupId = 'battila.rapidminer.extension'
+
+    vendor = "Attila Bagossy"
+
+    homepage = "github.com/battila7"
+
+    // define RapidMiner version and extension dependencies
+    dependencies {
+        rapidminer '8.1.0'
+        //extension namespace: 'text', version: '8.1.0'
+    }
+}
+
+// Define third party library dependencies
+dependencies {
+	//compile 'com.google.guava:guava:18.0'
+}
