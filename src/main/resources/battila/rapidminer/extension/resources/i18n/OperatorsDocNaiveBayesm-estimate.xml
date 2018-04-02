@@ -1,19 +1,12 @@
 <?xml version="1.0" encoding="windows-1252" standalone="no"?>
 <operatorHelp lang="en_EN">
-    <!--  This is an example how to specify the translation of operator keys to names. -->
-    <!--
     <operator>
-      <key>example_operator_key</key>
-      <name>Example Operator Name</name>
+      <key>naive_bayes_m_estimate</key>
+      <name>Naive Bayes (m-estimate)</name>
     </operator>
-    -->
 
-    <!-- This is how group keys are translated: -->
-    <!--
     <group>
-      <key>example_group</key>
-      <name>Example Group</name>
+        <key>naive_bayes_m_estimate_modeling_group</key>
+        <name>Modeling</name>
     </group>
-    -->
-
 </operatorHelp>
