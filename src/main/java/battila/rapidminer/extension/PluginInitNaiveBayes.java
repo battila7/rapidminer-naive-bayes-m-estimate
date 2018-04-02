@@ -30,9 +30,9 @@ import com.rapidminer.gui.MainFrame;
  *
  * @author REPLACEME
  */
-public final class PluginInitNaiveBayesm-estimate {
+public final class PluginInitNaiveBayes {
 
-		private PluginInitNaiveBayesm-estimate() {
+		private PluginInitNaiveBayes() {
 				// Utility class constructor
 		}
 
