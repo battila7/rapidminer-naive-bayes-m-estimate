@@ -22,46 +22,25 @@ package battila.rapidminer.extension;
 
 import com.rapidminer.gui.MainFrame;
 
-
-/**
- * This class provides hooks for initialization and its methods are called via reflection by
- * RapidMiner Studio. Without this class and its predefined methods, an extension will not be
- * loaded.
- *
- * @author REPLACEME
- */
 public final class PluginInitNaiveBayes {
 
 		private PluginInitNaiveBayes() {
-				// Utility class constructor
+            // Utility class constructor
 		}
 
-		/**
-		 * This method will be called directly after the extension is initialized. This is the first
-		 * hook during start up. No initialization of the operators or renderers has taken place when
-		 * this is called.
-		 */
-		public static void initPlugin() {}
+		public static void initPlugin() {
+			// Do nothing
+		}
 
-		/**
-		 * This method is called during start up as the second hook. It is called before the gui of the
-		 * mainframe is created. The Mainframe is given to adapt the gui. The operators and renderers
-		 * have been registered in the meanwhile.
-		 *
-		 * @param mainframe
-		 *            the RapidMiner Studio {@link MainFrame}.
-		 */
-		public static void initGui(MainFrame mainframe) {}
+		public static void initGui(MainFrame mainframe) {
+		    // Do nothing
+        }
 
-		/**
-		 * The last hook before the splash screen is closed. Third in the row.
-		 */
-		public static void initFinalChecks() {}
+		public static void initFinalChecks() {
+		    // Do nothing
+        }
 
-		/**
-		 * Will be called as fourth method, directly before the UpdateManager is used for checking
-		 * updates. Location for exchanging the UpdateManager. The name of this method unfortunately is
-		 * a result of a historical typo, so it's a little bit misleading.
-		 */
-		public static void initPluginManager() {}
+		public static void initPluginManager() {
+		    // Do nothing
+        }
 }

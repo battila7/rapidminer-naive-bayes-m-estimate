@@ -1,8 +1,12 @@
 package battila.rapidminer.extension.operator.mestimate;
 
+import static java.lang.Double.isNaN;
+import static java.util.stream.Collectors.toMap;
+
 import static com.rapidminer.example.set.ExampleSetUtilities.SetsCompareOption.ALLOW_SUBSET;
 import static com.rapidminer.example.set.ExampleSetUtilities.TypesCompareOption.ALLOW_SAME_PARENTS;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -12,7 +16,6 @@ import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.learner.PredictionModel;
-import com.rapidminer.tools.LogService;
 
 class NaiveBayesModel extends PredictionModel {
     private final Map<Double, Integer> countPerClass;
@@ -28,25 +31,19 @@ class NaiveBayesModel extends PredictionModel {
 
         this.labelAttribute = trainingExampleSet.getAttributes().getLabel();
         this.countPerClass = new HashMap<>();
-        this.calculators = new HashMap<>();
         this.exampleCount = trainingExampleSet.size();
 
-        Map<Double, Double> priors = new HashMap<>(presetPriors);
+        final Map<Double, Double> priors = new HashMap<>(presetPriors);
+        final Attribute[] regularAttributes = trainingExampleSet.getAttributes().createRegularAttributeArray();
+        final Map<String, ProbabilityCalculator.Builder> calculatorBuilders = Arrays.stream(regularAttributes)
+                .collect(toMap(Attribute::getName, attribute -> {
+                    if (attribute.isNominal()) {
+                        return new NominalProbabilityCalculator.Builder(attribute, m, priors);
+                    }
+                    return new GaussianProbabilityCalculator.Builder(attribute);
+                }));
 
-        final Map<String, ProbabilityCalculator.Builder> calculatorBuilders = new HashMap<>();
-
-        Attribute[] regularAttributes = trainingExampleSet.getAttributes().createRegularAttributeArray();
-
-        LogService.getRoot().info("m " + Double.toString(m));
-
-        for (Attribute attribute : regularAttributes) {
-            if (attribute.isNominal()) {
-                calculatorBuilders.put(attribute.getName(), new NominalProbabilityCalculator.Builder(attribute, m, priors));
-            } else {
-                calculatorBuilders.put(attribute.getName(), new GaussianProbabilityCalculator.Builder(attribute));
-            }
-        }
-
+        // Process the examples
         for (Example example : trainingExampleSet) {
             countPerClass.merge(example.getValue(labelAttribute), 1, Integer::sum);
 
@@ -57,19 +54,10 @@ class NaiveBayesModel extends PredictionModel {
 
         // Note, that this updates the priors used by the NominalProbabilityCalculators.
         // Although, this is quite a bad practice, it's done for efficiency reasons (ie. scan the examples only once).
-        for (Map.Entry<Double, Integer> entry : countPerClass.entrySet()) {
-            priors.putIfAbsent(entry.getKey(), entry.getValue().doubleValue() / (double)exampleCount);
-        }
+        countPerClass.forEach((clazz, count) -> priors.putIfAbsent(clazz, count.doubleValue() / (double)exampleCount));
 
-        LogService.getRoot().info("Priors");
-        for (Map.Entry<Double, Double> entry : priors.entrySet()) {
-            LogService.getRoot().info(labelAttribute.getMapping().mapIndex(entry.getKey().intValue()));
-            LogService.getRoot().info(entry.getValue().toString());
-        }
-
-        for (Map.Entry<String, ProbabilityCalculator.Builder> entry : calculatorBuilders.entrySet()) {
-            this.calculators.put(entry.getKey(), entry.getValue().build());
-        }
+        this.calculators = calculatorBuilders.entrySet().stream()
+                .collect(toMap(Map.Entry::getKey, entry -> entry.getValue().build()));
     }
 
     @Override
@@ -114,13 +102,7 @@ class NaiveBayesModel extends PredictionModel {
         }
 
         final double heyCompilerThisOneIsFinal = summedProbability;
-        confidenceMap.replaceAll((clazz, probability) -> {
-            if (Double.isNaN(probability)) {
-                return 0.0;
-            } else {
-                return probability / heyCompilerThisOneIsFinal;
-            }
-        });
+        confidenceMap.replaceAll((clazz, probability) -> isNaN(probability) ? 0.0 : (probability / heyCompilerThisOneIsFinal));
 
         return new Prediction(predictedClass, confidenceMap);
     }
