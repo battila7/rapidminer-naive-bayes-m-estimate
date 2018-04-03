@@ -8,7 +8,6 @@ import java.util.Map;
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
 import com.rapidminer.tools.LogService;
-import sun.rmi.runtime.Log;
 
 final class GaussianProbabilityCalculator implements ProbabilityCalculator {
     private final Map<Double, DistributionProperties> distributionPropertyMap;

@@ -27,9 +27,9 @@ final class NominalProbabilityCalculator implements ProbabilityCalculator {
     public double calculateFor(double attributeValue, double clazz) {
         final int count = valueCountPerClass.get(attributeValue).get(clazz);
 
-        final double numerator = (double)count /* + m * priors.get(clazz) */;
+        final double numerator = (double)count + m * priors.get(clazz);
 
-        return numerator / (countPerClass.get(clazz).doubleValue() /* + m */);
+        return numerator / (countPerClass.get(clazz).doubleValue() + m);
     }
 
     static final class Builder implements ProbabilityCalculator.Builder {

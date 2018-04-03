@@ -6,7 +6,6 @@ import static com.rapidminer.example.set.ExampleSetUtilities.TypesCompareOption.
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.logging.Logger;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
@@ -22,17 +21,23 @@ class NaiveBayesModel extends PredictionModel {
 
     private final int exampleCount;
 
-    NaiveBayesModel(ExampleSet trainingExampleSet, double m, Map<Double, Double> priors) {
+    private final Attribute labelAttribute;
+
+    NaiveBayesModel(ExampleSet trainingExampleSet, double m, Map<Double, Double> presetPriors) {
         super(trainingExampleSet, ALLOW_SUBSET, ALLOW_SAME_PARENTS);
 
-        final Attribute labelAttribute = trainingExampleSet.getAttributes().getLabel();
+        this.labelAttribute = trainingExampleSet.getAttributes().getLabel();
         this.countPerClass = new HashMap<>();
         this.calculators = new HashMap<>();
         this.exampleCount = trainingExampleSet.size();
 
+        Map<Double, Double> priors = new HashMap<>(presetPriors);
+
         final Map<String, ProbabilityCalculator.Builder> calculatorBuilders = new HashMap<>();
 
         Attribute[] regularAttributes = trainingExampleSet.getAttributes().createRegularAttributeArray();
+
+        LogService.getRoot().info("m" + Double.toString(m));
 
         for (Attribute attribute : regularAttributes) {
             if (attribute.isNominal()) {
@@ -50,6 +55,18 @@ class NaiveBayesModel extends PredictionModel {
             }
         }
 
+        // Note, that this updates the priors used by the NominalProbabilityCalculators.
+        // Although, this is quite a bad practice, it's done for efficiency reasons (ie. scan the examples only once).
+        for (Map.Entry<Double, Integer> entry : countPerClass.entrySet()) {
+            priors.putIfAbsent(entry.getKey(), entry.getValue().doubleValue() / (double)exampleCount);
+        }
+
+        LogService.getRoot().info("Priors");
+        for (Map.Entry<Double, Double> entry : priors.entrySet()) {
+            LogService.getRoot().info(labelAttribute.getMapping().mapIndex(entry.getKey().intValue()));
+            LogService.getRoot().info(entry.getValue().toString());
+        }
+
         for (Map.Entry<String, ProbabilityCalculator.Builder> entry : calculatorBuilders.entrySet()) {
             this.calculators.put(entry.getKey(), entry.getValue().build());
         }
@@ -60,24 +77,25 @@ class NaiveBayesModel extends PredictionModel {
         final Attribute[] regularAttributes = exampleSet.getAttributes().createRegularAttributeArray();
 
         for (Example example : exampleSet) {
-            example.setValue(predictedLabel, predictExample(example, regularAttributes));
+            final Prediction prediction = predictExample(example, regularAttributes);
+
+            example.setValue(predictedLabel, prediction.predictedClass);
+
+            prediction.confidenceMap.forEach(example::setConfidence);
         }
 
         return exampleSet;
     }
 
-    private double predictExample(Example example, Attribute[] regularAttributes) {
+    private Prediction predictExample(Example example, Attribute[] regularAttributes) {
         double maxProbability = Double.MIN_VALUE;
+        double summedProbability = 0;
         double predictedClass = 0;
 
-        LogService.getRoot().info("------------");
+        final Map<String, Double> confidenceMap = new HashMap<>();
 
         for (Map.Entry<Double, Integer> clazzEntry : countPerClass.entrySet()) {
             double clazzProbability = (double)clazzEntry.getValue() / (double)exampleCount;
-            Logger lg = LogService.getRoot();
-            lg.info("  #");
-
-            lg.info("  " + Double.toString(clazzProbability));
 
             for (Attribute attribute : regularAttributes) {
                 clazzProbability *= Optional.ofNullable(calculators.get(attribute.getName()))
@@ -85,7 +103,9 @@ class NaiveBayesModel extends PredictionModel {
                         .orElse(Double.MIN_VALUE);
             }
 
-            lg.info(" " + Double.toString(clazzProbability));
+            summedProbability += clazzProbability;
+
+            confidenceMap.put(labelAttribute.getMapping().mapIndex(clazzEntry.getKey().intValue()), clazzProbability);
 
             if (clazzProbability > maxProbability) {
                 maxProbability = clazzProbability;
@@ -93,6 +113,26 @@ class NaiveBayesModel extends PredictionModel {
             }
         }
 
-        return predictedClass;
+        final double heyCompilerThisOneIsFinal = summedProbability;
+        confidenceMap.replaceAll((clazz, probability) -> {
+            if (Double.isNaN(probability)) {
+                return 0.0;
+            } else {
+                return probability / heyCompilerThisOneIsFinal;
+            }
+        });
+
+        return new Prediction(predictedClass, confidenceMap);
+    }
+
+    private static final class Prediction {
+        private final double predictedClass;
+
+        private final Map<String, Double> confidenceMap;
+
+        private Prediction(double predictedClass, Map<String, Double> confidenceMap) {
+            this.predictedClass = predictedClass;
+            this.confidenceMap = confidenceMap;
+        }
     }
 }
