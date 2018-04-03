@@ -4,24 +4,25 @@ import static com.rapidminer.example.set.ExampleSetUtilities.SetsCompareOption.A
 import static com.rapidminer.example.set.ExampleSetUtilities.TypesCompareOption.ALLOW_SAME_PARENTS;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.learner.PredictionModel;
+import com.rapidminer.tools.LogService;
 
-public class NaiveBayesModel extends PredictionModel {
+class NaiveBayesModel extends PredictionModel {
     private final Map<Double, Integer> countPerClass;
 
     private final Map<String, ProbabilityCalculator> calculators;
 
     private final int exampleCount;
 
-    public NaiveBayesModel(ExampleSet trainingExampleSet, double m, Map<Double, Double> priors) {
+    NaiveBayesModel(ExampleSet trainingExampleSet, double m, Map<Double, Double> priors) {
         super(trainingExampleSet, ALLOW_SUBSET, ALLOW_SAME_PARENTS);
 
         final Attribute labelAttribute = trainingExampleSet.getAttributes().getLabel();
@@ -66,11 +67,17 @@ public class NaiveBayesModel extends PredictionModel {
     }
 
     private double predictExample(Example example, Attribute[] regularAttributes) {
-        double maxProbability = Double.MAX_VALUE;
+        double maxProbability = Double.MIN_VALUE;
         double predictedClass = 0;
+
+        LogService.getRoot().info("------------");
 
         for (Map.Entry<Double, Integer> clazzEntry : countPerClass.entrySet()) {
             double clazzProbability = (double)clazzEntry.getValue() / (double)exampleCount;
+            Logger lg = LogService.getRoot();
+            lg.info("  #");
+
+            lg.info("  " + Double.toString(clazzProbability));
 
             for (Attribute attribute : regularAttributes) {
                 clazzProbability *= Optional.ofNullable(calculators.get(attribute.getName()))
@@ -78,7 +85,10 @@ public class NaiveBayesModel extends PredictionModel {
                         .orElse(Double.MIN_VALUE);
             }
 
+            lg.info(" " + Double.toString(clazzProbability));
+
             if (clazzProbability > maxProbability) {
+                maxProbability = clazzProbability;
                 predictedClass = clazzEntry.getKey();
             }
         }

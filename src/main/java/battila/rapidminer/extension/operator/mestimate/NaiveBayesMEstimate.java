@@ -1,5 +1,7 @@
 package battila.rapidminer.extension.operator.mestimate;
 
+import java.util.HashMap;
+
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.Model;
 import com.rapidminer.operator.OperatorCapability;
@@ -15,7 +17,7 @@ public class NaiveBayesMEstimate extends AbstractLearner {
 
     @Override
     public Model learn(ExampleSet exampleSet) throws OperatorException {
-        return null;
+        return new NaiveBayesModel(exampleSet, 1.0, new HashMap<>());
     }
 
     @Override
