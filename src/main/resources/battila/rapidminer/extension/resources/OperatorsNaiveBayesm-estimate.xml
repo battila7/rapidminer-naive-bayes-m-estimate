@@ -4,7 +4,7 @@
         <group key="naive_bayes_m_estimate_modeling_group">
             <operator>
                <key>naive_bayes_m_estimate</key>
-               <class>battila.rapidminer.extension.operator.NaiveBayesOperator</class>
+               <class>battila.rapidminer.extension.operator.mestimate.NaiveBayesMEstimate</class>
                <icon>lightbulb_off.png</icon>
             </operator>
         </group>
