@@ -1,5 +1,7 @@
 package battila.rapidminer.extension.operator.mestimate;
 
+import static java.util.stream.Collectors.toMap;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,8 +19,6 @@ import com.rapidminer.parameter.ParameterTypeDouble;
 import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.tools.LogService;
-
-import static java.util.stream.Collectors.toMap;
 
 public class NaiveBayesMEstimate extends AbstractLearner {
     private static final String M_PARAMETER = "m";
