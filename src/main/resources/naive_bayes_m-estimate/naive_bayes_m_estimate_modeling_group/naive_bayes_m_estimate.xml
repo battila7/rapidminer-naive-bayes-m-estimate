@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../../../../../rapidminerreferencemanual/documentation2html.xsl"?>
+<p1:documents xmlns:p1="http://rapid-i.com/schemas/documentation/reference/1.0"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://rapid-i.com/schemas/documentation/reference/1.0 ">
+
+    <operator key="operator.naive_bayes_m-estimate:naive_bayes_m_estimate" locale="en"
+              version="6.0.000">
+        <title>Naive Bayes m-estimate</title>
+        <synopsis>
+            Generates a Naive Bayes classification model which uses the m-estimate method.
+        </synopsis>
+        <text>
+            <paragraph>
+                This operator only differs from the stock Naive Bayes operator, that it uses the m-estimate method
+                when calculating probabilities.
+            </paragraph>
+        </text>
+        <inputPorts>
+            <port name="training set" type="com.rapidminer.example.ExampleSet">
+                The training set used to create the classification model.
+            </port>
+        </inputPorts>
+        <outputPorts>
+            <port name="model" type="package com.rapidminer.operator.Model">
+                The classification model.
+            </port>
+            <port name="exampleSet" type="com.rapidminer.example.ExampleSet">
+                The original training set without any changes.
+            </port>
+        </outputPorts>
+    </operator>
+</p1:documents>

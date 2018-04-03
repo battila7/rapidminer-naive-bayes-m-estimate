@@ -37,7 +37,7 @@ class NaiveBayesModel extends PredictionModel {
 
         Attribute[] regularAttributes = trainingExampleSet.getAttributes().createRegularAttributeArray();
 
-        LogService.getRoot().info("m" + Double.toString(m));
+        LogService.getRoot().info("m " + Double.toString(m));
 
         for (Attribute attribute : regularAttributes) {
             if (attribute.isNominal()) {

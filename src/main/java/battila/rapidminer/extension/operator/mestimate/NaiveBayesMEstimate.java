@@ -56,8 +56,6 @@ public class NaiveBayesMEstimate extends AbstractLearner {
             case NUMERICAL_ATTRIBUTES:
             case POLYNOMINAL_LABEL:
             case BINOMINAL_LABEL:
-            case WEIGHTED_EXAMPLES:
-            case UPDATABLE:
             case MISSING_VALUES:
                 return true;
             default:
