@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
@@ -79,7 +80,11 @@ final class GaussianProbabilityCalculator implements ProbabilityCalculator {
             LogService.getRoot().info(targetAttribute.getName());
 
             for (Map.Entry<Double, List<Double>> entry : valuesPerClass.entrySet()) {
-                distributionPropertyMap.put(entry.getKey(), DistributionProperties.fromValues(entry.getValue()));
+                final List<Double> validValues = entry.getValue().stream()
+                        .filter(x -> !x.isNaN())
+                        .collect(Collectors.toList());
+
+                distributionPropertyMap.put(entry.getKey(), DistributionProperties.fromValues(validValues));
 
                 DistributionProperties p = distributionPropertyMap.get(entry.getKey());
 

@@ -26,6 +26,8 @@ class NaiveBayesModel extends PredictionModel {
 
     private final Attribute labelAttribute;
 
+    private final Map<Double, Double> priors;
+
     NaiveBayesModel(ExampleSet trainingExampleSet, double m, Map<Double, Double> presetPriors) {
         super(trainingExampleSet, ALLOW_SUBSET, ALLOW_SAME_PARENTS);
 
@@ -33,7 +35,7 @@ class NaiveBayesModel extends PredictionModel {
         this.countPerClass = new HashMap<>();
         this.exampleCount = trainingExampleSet.size();
 
-        final Map<Double, Double> priors = new HashMap<>(presetPriors);
+        this.priors = new HashMap<>(presetPriors);
         final Attribute[] regularAttributes = trainingExampleSet.getAttributes().createRegularAttributeArray();
         final Map<String, ProbabilityCalculator.Builder> calculatorBuilders = Arrays.stream(regularAttributes)
                 .collect(toMap(Attribute::getName, attribute -> {
@@ -83,7 +85,7 @@ class NaiveBayesModel extends PredictionModel {
         final Map<String, Double> confidenceMap = new HashMap<>();
 
         for (Map.Entry<Double, Integer> clazzEntry : countPerClass.entrySet()) {
-            double clazzProbability = (double)clazzEntry.getValue() / (double)exampleCount;
+            double clazzProbability = priors.get(clazzEntry.getKey());
 
             for (Attribute attribute : regularAttributes) {
                 clazzProbability *= Optional.ofNullable(calculators.get(attribute.getName()))

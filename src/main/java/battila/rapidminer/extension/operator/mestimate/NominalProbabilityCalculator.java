@@ -2,6 +2,7 @@ package battila.rapidminer.extension.operator.mestimate;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
@@ -25,7 +26,9 @@ final class NominalProbabilityCalculator implements ProbabilityCalculator {
 
     @Override
     public double calculateFor(double attributeValue, double clazz) {
-        final int count = valueCountPerClass.get(attributeValue).get(clazz);
+        final int count = Optional.ofNullable(valueCountPerClass.get(attributeValue))
+                .map(clazzCounts -> clazzCounts.get(clazz))
+                .orElse(0);
 
         final double numerator = (double)count + m * priors.get(clazz);
 
