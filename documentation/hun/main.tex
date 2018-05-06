@@ -40,6 +40,7 @@
         belowcaptionskip=2em}
 
 \renewcommand{\lstlistingname}{Kódrészlet}
+\renewcommand{\figurename}{Ábra}
 
 
 \title{Adatbányászat beadandó projekt \\  \vspace*{3pt} \large Naive Bayes m-estimate}
@@ -92,7 +93,7 @@ A \texttt{NaiveBayesMEstimate} osztály írja le az operátort. Ugyanezen osztá
 
 A legfontosabb metódus, melyet a klienseknek (így a \texttt{NaiveBayesMEstimate} osztálynak is) implementálnia kell, a \texttt{public Model learn(ExampleSet exampleSet)}, mely egy, az adathalmazra illeszkedő modellt állít elő. Esetünkben ez a metódus egy \texttt{NaiveBayesModel} példányt fog visszaadni.
 
-\begin{lstlisting}[language=Java, caption={A \texttt{learn} metódus implementációja}, captionpos=b, escapechar=$]
+\begin{lstlisting}[language=Java, caption={A \texttt{learn} metódus implementációja.}, captionpos=b, escapechar=$]
 @Override
 public Model learn(ExampleSet exampleSet) throws OperatorException {
     return new NaiveBayesModel(
@@ -103,9 +104,9 @@ public Model learn(ExampleSet exampleSet) throws OperatorException {
 \end{lstlisting}
 
 
-Az operátor paraméterezését a \texttt{public List<ParameterType> getParameterTypes()} függvény megvalósításával befolyásolhatjuk. Az m-estimate valószínűségi becslés alkalmazásához két paraméterre van szükség, az $m$ értékekére valamint az egyes osztályokhoz tartozó \textit{a priori} valószínűségi értékekre.
+Az operátor paraméterezését a \texttt{public List<ParameterType> getParameterTypes()} függvény megvalósításával befolyásolhatjuk. Az \textit{m-estimate} valószínűségi becslés alkalmazásához két paraméterre van szükség: az $m$ értékekére valamint az egyes osztályokhoz tartozó \textit{a priori} valószínűségi értékekre.
 
-\begin{lstlisting}[language=Java, caption={A paraméterek definiálása}, captionpos=b, escapechar=$]
+\begin{lstlisting}[language=Java, caption={A paraméterek definiálása.}, captionpos=b, escapechar=$]
 types.add(new ParameterTypeDouble(
     M_PARAMETER,
     "This parameter defines the m value used when calculating the probability.",
@@ -135,7 +136,7 @@ types.add(new ParameterTypeList(
 
 A Naiv Bayes-osztályozó két legfontosabb tevékenységét, azaz a tanulást és az osztályozást is a \texttt{NaiveBayesModel} valósítja meg, mely a RapidMiner beépített \texttt{PredictionModel} osztályát terjeszti ki.
 
-A tanulási folyamat a valószínűségi becslések kiszámítását jelenti, mely közvetlenül az osztály egy példányának létrehozásakor megtörténik. A becslések meghatározása attribútumonként történik, az attribútumokhoz rendelt \texttt{ProbabilityCalculator} objektumok segítségével. Pontosabban, a folytonos értékeket felvevő attribútumokhoz egy \texttt{GaussianProbabilityCalculator}, míg a nominális értékeket felvevő attribútumokhoz egy \texttt{NominalProbabilityCalculator} objektum kerül létrehozásra. Természetesen a különleges szereppel (\textit{role}) rendelkező attribútumok nem lesznek figyelembe véve.
+A tanulási folyamat a valószínűségi becslések kiszámítását jelenti, mely közvetlenül az osztály egy példányának létrehozásakor történik meg. A becslések meghatározása attribútumonként zajlik, az attribútumokhoz rendelt \texttt{ProbabilityCalculator} objektumok segítségével. Pontosabban, a folytonos értékeket felvevő attribútumokhoz egy \texttt{GaussianProbabilityCalculator}, míg a nominális értékeket felvevő attribútumokhoz egy \texttt{NominalProbabilityCalculator} objektum kerül létrehozásra. Természetesen a különleges szereppel (\textit{role}) rendelkező attribútumok nem lesznek figyelembe véve.
 
 \begin{lstlisting}[language=Java, caption={A valószínűségi becsléseket meghatározó \texttt{ProbabilityCalculator} objektumok létrehozása.}, captionpos=b, escapechar=$]
 final Map<String, ProbabilityCalculator.Builder> calculatorBuilders = Arrays.stream(regularAttributes)
@@ -287,6 +288,72 @@ Ha a telepítés sikeres volt, akkor a RapidMiner elindítását követően, az 
 
 \subsection{Titanic}
 
-Nézzük meg az operátor használatát a Titanic adathalmazon! 
+Nézzük meg az operátor használatát a Titanic adathalmazon! Ehhez az 1. ábrán látható folyamatot állítottam össze.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=16cm]{process}
+    \caption{A Titanic adathalmaz címkézése.}
+\end{figure}
+
+A folyamat részeként összehasonlításra kerül a beépített Naiv Bayes-osztályozó, és a beadandó projekt részeként elkészült, \textit{m-estimate} módszert alkalmazó osztályozó performanciája.
+
+\subsubsection{Select Attributes}
+
+Az adathalmaz beolvasását követően eldobjuk azokat az attribútumokat, melyek nem lényegesek az osztályozás szempontjából. Ezek a következők:
+
+\begin{itemize}
+    \item Cabin
+    \item Name
+    \item TicketNumber
+\end{itemize}
+
+\subsubsection{Set Role}
+
+A következő lépés a \textit{Survived} attribútum felruházása a \textit{Label} szerepkörrel. Ez teszi lehetővé, hogy később kiértékelhessük az osztályozók teljesítményét. Annak következtében, hogy a \textit{Survived} attribútum ilyen speciális szereppel rendelkezik, sem a tanítás, sem az osztályozás során nem lesz számításba véve, nem számít többé reguláris attribútumnak (\textit{regular attribute}.
+
+\subsubsection{Split Data}
+
+Az adathalmazt $7:3$ arányban felosztjuk tanító halmazra és teszt halmazra. Előbbi segítségével készítjük el a modelleket, utóbbin pedig azok teljesítményét fogjuk mérni.
+
+\subsubsection{Naive Bayes m-estimate}
+
+A projekt részeként elkészített operátornak két paramétere van: az $m$ érték és az \textit{a priori} valószínűségek (2. ábra).
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=5cm]{parameters}
+    \caption{A \textit{Naive Bayes m-estimate} operátor paraméterei.}
+\end{figure}
+
+Az egyes osztályokhoz tartozó \textit{a priori} valószínűségeket egy külön párbeszédablakon állíthatjuk be (3. ábra).
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=10cm]{priors}
+    \caption{Az \textit{a priori} valószínűségek beállítása.}
+\end{figure}
+
+\subsubsection{Apply m-estimate / Apply Stock}
+
+A tanítás után következhet a modelleket tesztelése korábban nem látott adatokon. Az \textit{Apply m-estimate} operátor az \textit{m-estimate} módszert alkalmazó modellt használja, míg az \textit{Apply Stock} operátor a beépített osztályozó által előállított modellt.
+
+\subsubsection{m-estimate Performance / Stock Performance}
+
+A folyamat utolsó fázisa a modellek teljesítményének kiértékelése. A folyamat kimenetét az így kapott metrikák, valamint a felcímkézett adathalmazok fogják alkotni. Az eredeti operátor által adott modell teljesítménye a 4. ábrán, az \textit{m-estimate} modell teljesítménye az 5. ábrán látható.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=15cm]{stock_performance}
+    \caption{A beépített Naiv Bayes-osztályozó által előállított modell performanciája.}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=15cm]{m_estimate_performance}
+    \caption{Az \textit{m-estimate} módszert alkalmazó modell performanciája.}
+\end{figure}
+
+Leolvasható, hogy az \textit{m-estimate} módszert alkalmazó modell pontossága (\textit{accuracy}) alulmarad a beépített osztályozó pontosságához képest. Előbbi ugyanis túl sok, valójában \textit{No} címkével rendelkező rekordot sorol a \textit{Yes} osztályba. Ezen egyrészt az $m$ érték és az \textit{a priori} valószínűségek módosításával javíthatunk. Másrészt, a két operátor közötti kisebb implementációs különbségek (például a hiányzó értékek kezelésének módja) is állhatnak az eltérés mögött.
 
 \end{document}

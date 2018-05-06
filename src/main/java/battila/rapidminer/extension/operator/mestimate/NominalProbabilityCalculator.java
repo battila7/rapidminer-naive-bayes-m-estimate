@@ -8,6 +8,8 @@ import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
 import com.rapidminer.tools.LogService;
 
+import static java.util.Objects.isNull;
+
 final class NominalProbabilityCalculator implements ProbabilityCalculator {
     private final double m;
 
@@ -58,6 +60,10 @@ final class NominalProbabilityCalculator implements ProbabilityCalculator {
 
         @Override
         public void add(Example example) {
+            if (isNull(example.getNominalValue(targetAttribute))) {
+                return;
+            }
+
             final Map<Double, Integer> classCounts =
                     valueCountPerClass.computeIfAbsent(example.getValue(targetAttribute), value -> new HashMap<>());
 
